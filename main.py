@@ -32,8 +32,10 @@ def main():
     for element in answered:
         pcs.append([element[1].hwsrc, element[1].psrc])
     pcs.sort(key=lambda x: [int (y) for y in x[1].split('.')])
+    compteur = 0
     for pc in pcs:
-        print(pc[0] + ' ' + pc[1])
+        print(str(compteur)+ ' - ' + pc[0] + ' ' + pc[1])
+        compteur+=1
 
 if __name__ == '__main__':
     main()
