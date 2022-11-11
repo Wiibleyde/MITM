@@ -34,8 +34,14 @@ def main():
     pcs.sort(key=lambda x: [int (y) for y in x[1].split('.')])
     compteur = 0
     for pc in pcs:
-        print(str(compteur)+ ' - ' + pc[0] + ' ' + pc[1])
+        print(str(compteur+1)+ ' - ' + pc[0] + ' ' + pc[1])
         compteur+=1
+    cible=input('Entrez le numéro de la cible : ')
+    cible=pcs[int(cible)-1]
+    print('Vous avez choisi : ' + cible[0] + ' ' + cible[1])
+    routeur=input('Entrez le numéro du routeur : ')
+    routeur=pcs[int(routeur)-1]
+    print('Vous avez choisi : ' + routeur[0] + ' ' + routeur[1])
 
 if __name__ == '__main__':
     main()
