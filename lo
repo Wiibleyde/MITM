@@ -1,0 +1,4 @@
+query=
+<Ether  dst=ff:ff:ff:ff:ff:ff type=ARP |<ARP  pdst=192.168.1.7 |
+>>, answer=<Ether  dst=bc:09:1b:17:26:59 src=70:ee:50:1c:08:d6 type=ARP |
+<ARP  hwtype=0x1 ptype=IPv4 hwlen=6 plen=4 op=is-at hwsrc=70:ee:50:1c:08:d6 psrc=192.168.1.7 hwdst=bc:09:1b:17:26:59 pdst=192.168.1.42 |<Padding  load='f\\xe2]\\xbc\\xad1st\\xd1ז\\xd7\x14\x01\x00\x00\x0f\\xac' |>>>
