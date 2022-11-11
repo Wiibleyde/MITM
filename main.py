@@ -5,7 +5,7 @@ from fcntl import ioctl
 from struct import pack
 import os
 
-def interface():
+def interfaceChecker():
     if os.uname()[1] == 'machine':
         interface = 'enp0s8'
     else:
@@ -25,7 +25,7 @@ def makeARPRequest(ip):
     return answered, unanswered
 
 def main():
-    interface = interface()
+    interface = interfaceChecker()
     netmask = getNetworkMask(interface)
     address = IPv4Network(scapy.get_if_addr(interface) + '/' + netmask, False)
     ip = address.network_address
