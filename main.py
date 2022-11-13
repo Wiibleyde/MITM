@@ -49,7 +49,8 @@ def forwardDnsSpoofing(spooferIP):
             print('DNS Forwarding')
             newPacket = orgPacket
             newPacket[IP].src = spooferIP
-            newPacket[IP].dst = '8.8.8.8'
+            newPacket[IP].dst = '127.0.0.1'
+            newPacket[UDP].dport = 5353
             scapy.conf.L3socket = scapy.L3RawSocket
             answer = scapy.sr1(newPacket)
             answer[IP].src = orgPacket[IP].dst
