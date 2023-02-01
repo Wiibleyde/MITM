@@ -1,4 +1,4 @@
-# network-scan*
+# Man In The Middle
 
 Only for educational purposes. Do not use it for illegal purposes.
 
